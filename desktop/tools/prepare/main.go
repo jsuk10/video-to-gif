@@ -18,6 +18,7 @@ const (
 var copies = map[string]string{
 	"app.js":                   "app.js",
 	"encoder-worker.js":        "encoder-worker.js",
+	"palette.js":               "palette.js",
 	"style.css":                "style.css",
 	"favicon.svg":              "favicon.svg",
 	"vendor/gifenc.esm.js":     "vendor/gifenc.esm.js",

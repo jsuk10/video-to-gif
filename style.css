@@ -678,6 +678,7 @@ legend {
   color: var(--text-2);
   font-size: 0.8125rem;
   line-height: 1.5;
+  text-wrap: pretty;
 }
 
 .check {
@@ -687,6 +688,14 @@ legend {
   min-height: 36px;
   font-size: 0.9375rem;
   cursor: pointer;
+}
+
+.field .check {
+  margin-top: 8px;
+}
+
+.check + .hint {
+  margin-top: 0;
 }
 
 .check input {

@@ -133,13 +133,18 @@
                 <label><input type="radio" name="colors" value="64"><span>64</span></label>
                 <label><input type="radio" name="colors" value="32"><span>32</span></label>
               </div>
+              <label class="check">
+                <input type="checkbox" id="dither" checked aria-describedby="dither-hint">
+                <span>색 띠 줄이기 (디더링)</span>
+              </label>
+              <p class="hint" id="dither-hint">연기나 하늘처럼 색이 이어지는 곳의 나이테 무늬를 잔 점으로 풀어요. 파일은 조금 커져요.</p>
             </fieldset>
 
             <fieldset class="field">
               <legend>영상 종류</legend>
               <div class="segmented">
-                <label><input type="radio" name="kind" value="screen" checked aria-describedby="kind-hint"><span>화면 녹화</span></label>
-                <label><input type="radio" name="kind" value="video" aria-describedby="kind-hint"><span>실사 영상</span></label>
+                <label><input type="radio" name="kind" value="screen" checked aria-describedby="kind-hint"><span>UI 녹화</span></label>
+                <label><input type="radio" name="kind" value="video" aria-describedby="kind-hint"><span>게임·실사</span></label>
               </div>
               <p class="hint" id="kind-hint"></p>
             </fieldset>

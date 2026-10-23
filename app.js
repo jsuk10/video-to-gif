@@ -8,8 +8,8 @@ const SETTINGS_KEY = 'video-to-gif:settings';
 const VIDEO_EXTENSIONS = /\.(mp4|m4v|webm|mov|mkv|ogv|avi)$/i;
 
 const KIND_HINTS = {
-  screen: '바뀐 부분만 저장해서 파일이 작아요. 화면 녹화나 UI 데모에 맞아요.',
-  video: '프레임마다 색을 새로 골라서 색이 정확해요. 대신 파일이 커요.',
+  screen: '모든 프레임이 같은 색을 나눠 써서 파일이 작아요. 화면 대부분이 가만히 있는 UI 녹화에 맞아요.',
+  video: '프레임마다 색을 새로 골라요. 연기, 불꽃, 하늘처럼 색이 많고 계속 바뀌는 장면에 맞아요.',
 };
 
 const $ = (id) => document.getElementById(id);
@@ -36,6 +36,7 @@ const ui = {
   replaceButton: $('replace-button'),
   settings: $('settings-fields'),
   loop: $('loop'),
+  dither: $('dither'),
   kindHint: $('kind-hint'),
   estimate: $('estimate'),
   estimateNote: $('estimate-note'),
@@ -379,6 +380,7 @@ function readSettings() {
     colors: Number(checkedValue('colors')),
     kind: checkedValue('kind'),
     loop: ui.loop.checked,
+    dither: ui.dither.checked,
   };
 }
 
@@ -390,6 +392,7 @@ function saveSettings() {
     colors: checkedValue('colors'),
     kind: checkedValue('kind'),
     loop: ui.loop.checked,
+    dither: ui.dither.checked,
   };
   try {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(saved));
@@ -411,6 +414,7 @@ function restoreSettings() {
     if (input) input.checked = true;
   }
   if (typeof saved.loop === 'boolean') ui.loop.checked = saved.loop;
+  if (typeof saved.dither === 'boolean') ui.dither.checked = saved.dither;
   state.preferredWidth = checkedValue('width');
 }
 
@@ -547,7 +551,7 @@ function pickEvenly(items, count) {
   return Array.from({ length: count }, (_, i) => items[Math.round((i * (items.length - 1)) / (count - 1))]);
 }
 
-// 화면 녹화 모드는 모든 프레임이 팔레트 하나를 같이 쓴다. 구간 전체에서 고르게 뽑은 프레임의 픽셀로 팔레트를 만든다.
+// UI 녹화 모드는 모든 프레임이 팔레트 하나를 같이 쓴다. 구간 전체에서 고르게 뽑은 프레임의 픽셀로 팔레트를 만든다.
 async function collectPaletteSamples(job, times) {
   const picks = pickEvenly(times, PALETTE_SAMPLE_FRAMES);
   const pixelsPerFrame = job.width * job.height;
@@ -587,7 +591,14 @@ async function convert() {
     }
 
     job.encoder = new Encoder((done) => setProgress(done, total));
-    job.encoder.start({ ...size, kind: settings.kind, colors: settings.colors, loop: settings.loop, samples });
+    job.encoder.start({
+      ...size,
+      kind: settings.kind,
+      colors: settings.colors,
+      loop: settings.loop,
+      dither: settings.dither,
+      samples,
+    });
     for (let i = 0; i < total; i++) {
       const pixels = await job.grabber.grab(plan.times[i]);
       throwIfCancelled(job);
