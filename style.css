@@ -151,8 +151,15 @@ h2 {
   font-size: 0.9375rem;
 }
 
-.source-link {
+.masthead-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
   flex: none;
+}
+
+.source-link {
   font-size: 0.875rem;
   font-weight: 500;
   padding: 10px 0;
@@ -226,6 +233,11 @@ h2 {
   padding: 0 12px;
   font-size: 0.8125rem;
   font-weight: 550;
+}
+
+.btn-small .icon {
+  width: 16px;
+  height: 16px;
 }
 
 .btn-block {

@@ -18,7 +18,7 @@
 
 인터넷이 막혀 있거나 외부 사이트를 쓸 수 없는 환경을 위한 실행 파일입니다. 설치 없이 실행합니다.
 
-**받기: [Releases](https://github.com/jsuk10/video-to-gif/releases/latest)에서 `video-to-gif.exe`**
+**받기: [video-to-gif.exe 바로 받기](https://github.com/jsuk10/video-to-gif/releases/latest/download/video-to-gif.exe)** (웹판 오른쪽 위 "Windows용 exe 받기" 버튼과 같은 파일, 버전별 기록은 [Releases](https://github.com/jsuk10/video-to-gif/releases))
 
 - 웹판과 같은 화면을 프로그램 창에 띄웁니다. 화면 파일과 글꼴은 모두 exe 안에 들어 있고, 이 PC 안(`127.0.0.1`)에서만 열리는 서버로 창에 넘깁니다.
 - 외부로 나가는 연결은 콘텐츠 보안 정책(CSP)으로 막혀 있습니다. 스크립트, 글꼴, 이미지 모두 exe 안에서만 옵니다.

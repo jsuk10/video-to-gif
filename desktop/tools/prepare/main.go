@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -36,6 +37,9 @@ var htmlEdits = []struct{ from, to string }{
 		`인터넷 연결 없이 이 PC 안에서만 변환돼요.`,
 	},
 }
+
+// 웹판에만 있는 구간(데스크톱판 받기 버튼 등). <!-- web-only ... --> 부터 <!-- /web-only --> 까지 지운다.
+var webOnly = regexp.MustCompile(`(?s)[ \t]*<!-- web-only.*?<!-- /web-only -->\n?`)
 
 const fontCSS = `@font-face {
   font-family: "Pretendard Variable";
@@ -71,7 +75,12 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	text := string(html)
+	// Windows 에서 받은 저장소는 줄바꿈이 CRLF 일 수 있다. 여러 줄 패턴이 어긋나지 않게 맞춘다.
+	text := strings.ReplaceAll(string(html), "\r\n", "\n")
+	if !webOnly.MatchString(text) {
+		return fmt.Errorf("index.html 에서 web-only 구간을 찾지 못했어요")
+	}
+	text = webOnly.ReplaceAllString(text, "")
 	for _, edit := range htmlEdits {
 		if !strings.Contains(text, edit.from) {
 			return fmt.Errorf("index.html 에서 %q 를 찾지 못했어요", edit.from)
