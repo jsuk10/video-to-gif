@@ -14,6 +14,32 @@
   - **실사 영상**: 프레임마다 팔레트를 새로 만들어서 색이 정확합니다. 대신 파일이 큽니다.
 - 결과가 GitHub 이슈, PR 첨부 한도(10MB)를 넘는지 바로 알려 줌
 
+## 데스크톱판 (Windows exe)
+
+인터넷이 막혀 있거나 외부 사이트를 쓸 수 없는 환경을 위한 실행 파일입니다. 설치 없이 실행합니다.
+
+**받기: [Releases](https://github.com/jsuk10/video-to-gif/releases/latest)에서 `video-to-gif.exe`**
+
+- 웹판과 같은 화면을 프로그램 창에 띄웁니다. 화면 파일과 글꼴은 모두 exe 안에 들어 있고, 이 PC 안(`127.0.0.1`)에서만 열리는 서버로 창에 넘깁니다.
+- 외부로 나가는 연결은 콘텐츠 보안 정책(CSP)으로 막혀 있습니다. 스크립트, 글꼴, 이미지 모두 exe 안에서만 옵니다.
+- GIF는 Windows의 "다른 이름으로 저장" 창으로 저장합니다.
+- Windows 10/11에 들어 있는 WebView2 런타임으로 창을 그립니다. WebView2가 없는 PC에서는 기본 브라우저로 같은 화면을 엽니다. 이때도 변환은 PC 안에서만 일어납니다.
+- 마지막 설정과 WebView2 캐시는 `%LOCALAPPDATA%\VideoToGif`에 둡니다. 이 폴더를 지우면 흔적이 남지 않습니다.
+- 코드 서명이 없어서 처음 실행할 때 "Windows의 PC 보호" 창이 뜰 수 있습니다. "추가 정보 → 실행"을 누르면 됩니다. 서명 안 된 exe를 막는 회사 PC라면 IT 담당자에게 허용을 요청해야 합니다.
+- 받은 파일이 Releases에 적힌 것과 같은지 확인하려면 PowerShell에서 `Get-FileHash video-to-gif.exe`를 실행해 SHA-256 값을 비교하세요.
+
+### 직접 빌드
+
+Go와 [go-winres](https://github.com/tc-hib/go-winres)가 필요합니다.
+
+```powershell
+go install github.com/tc-hib/go-winres@latest
+cd desktop
+.\build.ps1
+```
+
+`desktop\dist\video-to-gif.exe`가 만들어집니다. 빌드 스크립트는 웹판 파일을 `desktop\web`으로 복사하면서 CDN 글꼴을 exe에 넣는 글꼴로 바꾸고, 테스트를 돌린 뒤 빌드합니다.
+
 ## GitHub README에 넣기
 
 만든 GIF를 저장소에 커밋하고 README에서 상대 경로로 부르면 됩니다.
@@ -46,4 +72,6 @@ npx serve .
 
 ## 라이선스
 
-GIF 인코더 [gifenc](https://github.com/mattdesl/gifenc)는 MIT 라이선스이며 `vendor/`에 원문 라이선스와 함께 들어 있습니다.
+- GIF 인코더 [gifenc](https://github.com/mattdesl/gifenc): MIT 라이선스. `vendor/`에 원문 라이선스와 함께 들어 있습니다.
+- 데스크톱판 글꼴 [Pretendard](https://github.com/orioncactus/pretendard): SIL Open Font License 1.1. `desktop/assets/fonts/`에 원문 라이선스와 함께 들어 있습니다.
+- 데스크톱판 WebView2 연결 [go-webview2](https://github.com/jchv/go-webview2): MIT 라이선스.

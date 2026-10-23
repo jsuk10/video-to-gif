@@ -47,7 +47,13 @@ const ui = {
   resultMeta: $('result-meta'),
   sizeNote: $('size-note'),
   downloadLink: $('download-link'),
+  saveStatus: $('save-status'),
+  saveStatusText: $('save-status-text'),
+  revealButton: $('reveal-button'),
 };
+
+// 데스크톱판(exe)이 창을 열 때 심어 두는 값. 웹판에서는 없다.
+const desktop = window.__DESKTOP__ ?? null;
 
 const state = {
   file: null,
@@ -154,7 +160,8 @@ async function loadFile(file) {
   if (token !== loadToken) return URL.revokeObjectURL(url);
   if (!isOpenable) {
     URL.revokeObjectURL(url);
-    showLoadProblem(`고른 파일(${file.name})은 이 브라우저에서 열 수 없는 형식이에요. MP4(H.264)나 WebM으로 바꿔서 다시 시도해 주세요.`);
+    const where = desktop ? '이 프로그램' : '이 브라우저';
+    showLoadProblem(`고른 파일(${file.name})은 ${where}에서 열 수 없는 형식이에요. MP4(H.264)나 WebM으로 바꿔서 다시 시도해 주세요.`);
     return;
   }
 
@@ -593,6 +600,7 @@ function showResult(bytes, info) {
     : `GitHub 이슈, PR에 바로 첨부할 수 있는 크기예요. 변환에 ${formatSeconds(info.took)} 걸렸어요.`;
   ui.sizeNote.classList.toggle('is-warning', isOverLimit);
 
+  ui.saveStatus.hidden = true;
   ui.result.hidden = false;
   ui.result.classList.remove('is-revealed');
   void ui.result.offsetWidth;
@@ -605,7 +613,38 @@ function showResult(bytes, info) {
   }
 }
 
+// 데스크톱판: 표준 '다른 이름으로 저장' 창으로 저장한다. 실제 쓰기는 exe 쪽에서 한다.
+let isSaving = false;
+
+async function saveToDisk() {
+  if (isSaving || !state.resultUrl) return;
+  isSaving = true;
+  try {
+    const gif = await (await fetch(state.resultUrl)).blob();
+    const response = await fetch(`/save?name=${encodeURIComponent(ui.downloadLink.download)}`, {
+      method: 'POST',
+      headers: { 'X-Desktop-Token': desktop.token },
+      body: gif,
+    });
+    if (!response.ok) throw new Error((await response.text()).trim());
+    const result = await response.json();
+    if (!result.cancelled) showSaveStatus(`${result.path}에 저장했어요.`, false);
+  } catch (error) {
+    showSaveStatus(`저장하지 못했어요. ${error.message}`, true);
+  } finally {
+    isSaving = false;
+  }
+}
+
+function showSaveStatus(message, isError) {
+  ui.saveStatusText.textContent = message;
+  ui.saveStatus.classList.toggle('is-error', isError);
+  ui.revealButton.hidden = isError;
+  ui.saveStatus.hidden = false;
+}
+
 function clearResult() {
+  ui.saveStatus.hidden = true;
   ui.result.hidden = true;
   ui.resultImage.removeAttribute('src');
   ui.downloadLink.removeAttribute('href');
@@ -727,6 +766,21 @@ ui.settings.addEventListener('change', (event) => {
 
 ui.convertButton.addEventListener('click', convert);
 ui.cancelButton.addEventListener('click', cancelJob);
+
+if (desktop) {
+  ui.downloadLink.addEventListener('click', (event) => {
+    event.preventDefault();
+    saveToDisk();
+  });
+  ui.revealButton.addEventListener('click', () => window.revealSaved?.());
+  // 창 안에서 외부 사이트로 넘어가지 않게, 웹 링크는 기본 브라우저로 연다.
+  document.addEventListener('click', (event) => {
+    const link = event.target.closest('a[href^="http"]');
+    if (!link) return;
+    event.preventDefault();
+    window.openExternal?.(link.href);
+  });
+}
 
 restoreSettings();
 updateEstimate();

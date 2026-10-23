@@ -726,6 +726,28 @@ legend {
   color: var(--warn-text);
 }
 
+/* 데스크톱판에서만 쓴다: 저장한 위치 안내 */
+.save-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 0.8125rem;
+  color: var(--text-2);
+}
+
+.save-status p {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.save-status.is-error {
+  color: var(--error-text);
+}
+
 /* ---------- 끌어다 놓기 덮개 (편집 중일 때만) ---------- */
 
 .drop-overlay {

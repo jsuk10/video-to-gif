@@ -1,0 +1,5 @@
+# go generate 가 웹판 파일을 복사해 만드는 폴더
+/web/
+# 빌드 결과물 (GitHub Releases 에 올린다)
+/dist/
+*.syso
