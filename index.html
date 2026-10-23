@@ -55,8 +55,19 @@
 
           <div class="trim">
             <div class="trim-head">
-              <span class="trim-label" id="trim-label">구간</span>
-              <output id="trim-summary" class="trim-summary" aria-live="polite"></output>
+              <span class="trim-label">구간</span>
+              <div class="trim-times">
+                <label class="time-field">
+                  <span>시작</span>
+                  <input type="text" id="start-time" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="time-hint" title="30 또는 1:05.5처럼 입력해요">
+                </label>
+                <label class="time-field">
+                  <span>끝</span>
+                  <input type="text" id="end-time" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="time-hint" title="30 또는 1:05.5처럼 입력해요">
+                </label>
+                <output id="trim-length" class="trim-length" aria-live="polite"></output>
+              </div>
+              <p class="visually-hidden" id="time-hint">초(30)나 분:초(1:05.5)로 입력하고 Enter를 누르세요.</p>
             </div>
             <div class="trim-track" id="trim-track">
               <div class="trim-rail" aria-hidden="true"><div class="trim-fill"></div></div>
@@ -64,6 +75,7 @@
               <input type="range" id="trim-start" min="0" step="any" aria-label="시작 지점">
               <input type="range" id="trim-end" min="0" step="any" aria-label="끝 지점">
             </div>
+            <p class="trim-note" id="trim-note" role="status" hidden></p>
             <div class="trim-actions">
               <button type="button" class="btn btn-quiet btn-small" id="play-clip">구간 재생</button>
               <button type="button" class="btn btn-quiet btn-small" id="set-start">지금 위치를 시작으로</button>

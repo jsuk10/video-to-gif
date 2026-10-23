@@ -24,7 +24,10 @@ const ui = {
   trimTrack: $('trim-track'),
   trimStart: $('trim-start'),
   trimEnd: $('trim-end'),
-  trimSummary: $('trim-summary'),
+  startTime: $('start-time'),
+  endTime: $('end-time'),
+  trimLength: $('trim-length'),
+  trimNote: $('trim-note'),
   playClip: $('play-clip'),
   setStart: $('set-start'),
   setEnd: $('set-end'),
@@ -219,6 +222,7 @@ function setupTrim() {
   for (const input of [ui.trimStart, ui.trimEnd]) input.max = String(state.duration);
   ui.trimStart.value = '0';
   ui.trimEnd.value = String(state.duration);
+  hideTrimNote();
   renderTrim();
   renderPlayhead();
 }
@@ -235,8 +239,24 @@ function setClip(start, end) {
   state.end = end;
   ui.trimStart.value = String(start);
   ui.trimEnd.value = String(end);
+  hideTrimNote();
   renderTrim();
   updateEstimate();
+}
+
+// 시작을 끝 뒤로 옮기면 끝을 영상 끝으로 밀고, 끝을 시작 앞으로 옮기면 시작을 처음으로 당긴다.
+function moveStart(time) {
+  setClip(time, time < state.end - minClip() ? state.end : state.duration);
+}
+
+function moveEnd(time) {
+  setClip(time > state.start + minClip() ? state.start : 0, time);
+}
+
+function previewEdge(which) {
+  ui.preview.pause();
+  // 끝 지점은 그 직전 프레임을 보여 준다. 끝 시각 자체는 GIF에 들어가지 않는다.
+  ui.preview.currentTime = which === 'start' ? state.start : Math.max(state.start, state.end - 1 / 30);
 }
 
 function onTrimInput(which) {
@@ -246,10 +266,42 @@ function onTrimInput(which) {
   if (which === 'start') start = Math.min(start, end - gap);
   else end = Math.max(end, start + gap);
   setClip(start, end);
+  previewEdge(which);
+}
 
-  ui.preview.pause();
-  // 끝 지점은 그 직전 프레임을 보여 준다. 끝 시각 자체는 GIF에 들어가지 않는다.
-  ui.preview.currentTime = which === 'start' ? state.start : Math.max(state.start, state.end - 1 / 30);
+// "30", "30.5", "1:05", "1:05.5", "1:02:03" 을 초로 바꾼다. 읽을 수 없으면 null.
+function parseTime(text) {
+  const parts = text.trim().replace(/초$/, '').replace(/,/g, '.').split(':');
+  const isValid = parts.length <= 3 && parts.every((part) => /^\d+(\.\d+)?$/.test(part.trim()));
+  if (!isValid) return null;
+  return parts.reduce((total, part) => total * 60 + Number(part), 0);
+}
+
+function onTimeChange(which) {
+  const input = which === 'start' ? ui.startTime : ui.endTime;
+  const time = parseTime(input.value);
+  if (time === null) {
+    renderTrim();
+    input.setAttribute('aria-invalid', 'true');
+    showTrimNote('시간은 30이나 1:05.5처럼 초 또는 분:초로 입력해 주세요.', true);
+    return;
+  }
+  if (which === 'start') moveStart(time);
+  else moveEnd(time);
+  previewEdge(which);
+  if (time > state.duration) showTrimNote(`영상이 ${formatClock(state.duration)}까지라서 끝에 맞췄어요.`, false);
+}
+
+function showTrimNote(message, isError) {
+  ui.trimNote.textContent = message;
+  ui.trimNote.classList.toggle('is-error', isError);
+  ui.trimNote.hidden = false;
+}
+
+function hideTrimNote() {
+  ui.trimNote.hidden = true;
+  ui.startTime.removeAttribute('aria-invalid');
+  ui.endTime.removeAttribute('aria-invalid');
 }
 
 function onTrimKey(event, which) {
@@ -273,7 +325,9 @@ function renderTrim() {
   ui.trimStart.style.zIndex = start > duration / 2 ? '3' : '2';
   ui.trimStart.setAttribute('aria-valuetext', formatClock(start));
   ui.trimEnd.setAttribute('aria-valuetext', formatClock(end));
-  ui.trimSummary.textContent = `${formatClock(start)} ~ ${formatClock(end)} (${formatSeconds(end - start)})`;
+  ui.startTime.value = formatClock(start);
+  ui.endTime.value = formatClock(end);
+  ui.trimLength.textContent = formatSeconds(end - start);
 }
 
 function renderPlayhead() {
@@ -663,8 +717,10 @@ function baseName(name) {
 }
 
 function formatClock(seconds) {
-  const minutes = Math.floor(seconds / 60);
-  const rest = seconds - minutes * 60;
+  // 0.1초 단위로 먼저 반올림해야 59.96초가 "0:60.0"이 되지 않는다.
+  const tenths = Math.round(seconds * 10);
+  const minutes = Math.floor(tenths / 600);
+  const rest = (tenths % 600) / 10;
   return `${minutes}:${rest.toFixed(1).padStart(4, '0')}`;
 }
 
@@ -740,14 +796,18 @@ ui.trimEnd.addEventListener('input', () => onTrimInput('end'));
 ui.trimStart.addEventListener('keydown', (event) => onTrimKey(event, 'start'));
 ui.trimEnd.addEventListener('keydown', (event) => onTrimKey(event, 'end'));
 ui.playClip.addEventListener('click', playClip);
-ui.setStart.addEventListener('click', () => {
-  const time = ui.preview.currentTime;
-  setClip(time, time < state.end - minClip() ? state.end : state.duration);
-});
-ui.setEnd.addEventListener('click', () => {
-  const time = ui.preview.currentTime;
-  setClip(time > state.start + minClip() ? state.start : 0, time);
-});
+ui.setStart.addEventListener('click', () => moveStart(ui.preview.currentTime));
+ui.setEnd.addEventListener('click', () => moveEnd(ui.preview.currentTime));
+for (const [input, which] of [[ui.startTime, 'start'], [ui.endTime, 'end']]) {
+  input.addEventListener('change', () => onTimeChange(which));
+  input.addEventListener('focus', () => input.select());
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      renderTrim();
+      input.blur();
+    }
+  });
+}
 
 ui.preview.addEventListener('play', watchPlayback);
 // 사용자가 구간 밖으로 직접 옮긴 건 '구간 끝을 지나감'으로 치지 않는다.

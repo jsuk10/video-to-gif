@@ -347,10 +347,10 @@ body.is-dragging .dropzone {
 
 .trim-head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .trim-label {
@@ -359,9 +359,77 @@ body.is-dragging .dropzone {
   color: var(--text-2);
 }
 
-.trim-summary {
+.trim-times {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px 14px;
+}
+
+.time-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+  color: var(--text-2);
+}
+
+.time-field input {
+  width: 78px;
+  min-height: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
   font-size: 0.875rem;
   font-variant-numeric: tabular-nums;
+  text-align: center;
+  transition: border-color 150ms var(--ease-out);
+}
+
+.time-field input:hover {
+  border-color: var(--text-2);
+}
+
+.time-field input:focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 1px;
+}
+
+.time-field input[aria-invalid="true"] {
+  border-color: var(--error-text);
+}
+
+.trim-length {
+  min-width: 4.5em;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.trim-note {
+  margin-top: 6px;
+  color: var(--text-2);
+  font-size: 0.8125rem;
+}
+
+.trim-note.is-error {
+  color: var(--error-text);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* 손잡이 두 개는 겹쳐 놓은 range 두 개다. 키보드와 스크린리더가 그대로 동작한다.
