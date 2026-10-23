@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>동영상을 GIF로</title>
+  <meta name="description" content="MP4, WebM, MOV 동영상을 GIF로 바꿉니다. 파일은 서버로 올라가지 않고 브라우저 안에서만 변환됩니다.">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body data-view="empty">
+  <div class="page">
+    <header class="masthead">
+      <div>
+        <h1>동영상을 GIF로</h1>
+        <p class="lede">파일은 서버로 올라가지 않아요. 이 브라우저 안에서만 변환돼요.</p>
+      </div>
+      <a class="source-link" href="https://github.com/jsuk10/video-to-gif">GitHub에서 보기</a>
+    </header>
+
+    <main>
+      <section id="dropzone" class="dropzone" aria-labelledby="dropzone-title">
+        <input id="file-input" type="file" accept="video/*,.mkv" hidden>
+        <svg class="dropzone-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <path d="M17 8l-5-5-5 5"/>
+          <path d="M12 3v12"/>
+        </svg>
+        <p id="dropzone-title" class="dropzone-title">동영상을 여기에 끌어다 놓으세요</p>
+        <p class="dropzone-hint">MP4, WebM, MOV. 복사한 파일은 Ctrl+V로 붙여 넣어도 돼요.</p>
+        <button type="button" class="btn btn-primary" id="pick-button">파일 선택</button>
+        <p class="error" id="load-error" role="alert" hidden></p>
+      </section>
+
+      <div id="editor" class="editor" hidden>
+        <div class="work">
+          <div class="stage">
+            <video id="preview" controls muted playsinline preload="auto"></video>
+          </div>
+
+          <div class="trim">
+            <div class="trim-head">
+              <span class="trim-label" id="trim-label">구간</span>
+              <output id="trim-summary" class="trim-summary" aria-live="polite"></output>
+            </div>
+            <div class="trim-track" id="trim-track">
+              <div class="trim-rail" aria-hidden="true"><div class="trim-fill"></div></div>
+              <div class="trim-playhead" aria-hidden="true"></div>
+              <input type="range" id="trim-start" min="0" step="any" aria-label="시작 지점">
+              <input type="range" id="trim-end" min="0" step="any" aria-label="끝 지점">
+            </div>
+            <div class="trim-actions">
+              <button type="button" class="btn btn-quiet btn-small" id="play-clip">구간 재생</button>
+              <button type="button" class="btn btn-quiet btn-small" id="set-start">지금 위치를 시작으로</button>
+              <button type="button" class="btn btn-quiet btn-small" id="set-end">지금 위치를 끝으로</button>
+            </div>
+          </div>
+        </div>
+
+        <aside class="settings" aria-label="변환 설정">
+          <div class="file-row">
+            <div class="file-text">
+              <p class="file-name" id="file-name"></p>
+              <p class="file-meta" id="file-meta"></p>
+            </div>
+            <button type="button" class="btn btn-quiet btn-small" id="replace-button">다른 동영상</button>
+          </div>
+
+          <fieldset id="settings-fields" class="settings-fields">
+            <fieldset class="field">
+              <legend>가로 크기 (px)</legend>
+              <div class="segmented">
+                <label><input type="radio" name="width" value="320"><span>320</span></label>
+                <label><input type="radio" name="width" value="480" checked><span>480</span></label>
+                <label><input type="radio" name="width" value="640"><span>640</span></label>
+                <label><input type="radio" name="width" value="800"><span>800</span></label>
+                <label><input type="radio" name="width" value="original"><span>원본</span></label>
+              </div>
+            </fieldset>
+
+            <fieldset class="field">
+              <legend>초당 프레임</legend>
+              <div class="segmented">
+                <label><input type="radio" name="fps" value="10"><span>10</span></label>
+                <label><input type="radio" name="fps" value="15" checked><span>15</span></label>
+                <label><input type="radio" name="fps" value="20"><span>20</span></label>
+                <label><input type="radio" name="fps" value="30"><span>30</span></label>
+              </div>
+            </fieldset>
+
+            <fieldset class="field">
+              <legend>재생 속도</legend>
+              <div class="segmented">
+                <label><input type="radio" name="speed" value="0.5"><span>0.5×</span></label>
+                <label><input type="radio" name="speed" value="1" checked><span>1×</span></label>
+                <label><input type="radio" name="speed" value="1.5"><span>1.5×</span></label>
+                <label><input type="radio" name="speed" value="2"><span>2×</span></label>
+              </div>
+            </fieldset>
+
+            <fieldset class="field">
+              <legend>색 수</legend>
+              <div class="segmented">
+                <label><input type="radio" name="colors" value="256" checked><span>256</span></label>
+                <label><input type="radio" name="colors" value="128"><span>128</span></label>
+                <label><input type="radio" name="colors" value="64"><span>64</span></label>
+                <label><input type="radio" name="colors" value="32"><span>32</span></label>
+              </div>
+            </fieldset>
+
+            <fieldset class="field">
+              <legend>영상 종류</legend>
+              <div class="segmented">
+                <label><input type="radio" name="kind" value="screen" checked aria-describedby="kind-hint"><span>화면 녹화</span></label>
+                <label><input type="radio" name="kind" value="video" aria-describedby="kind-hint"><span>실사 영상</span></label>
+              </div>
+              <p class="hint" id="kind-hint"></p>
+            </fieldset>
+
+            <label class="check">
+              <input type="checkbox" id="loop" checked>
+              <span>무한 반복</span>
+            </label>
+          </fieldset>
+
+          <div class="estimate">
+            <p id="estimate"></p>
+            <p class="estimate-note" id="estimate-note" hidden>프레임이 많아서 오래 걸리고 파일이 커질 수 있어요.</p>
+          </div>
+
+          <button type="button" class="btn btn-primary btn-block" id="convert-button">GIF 만들기</button>
+
+          <div class="progress" id="progress" hidden>
+            <div class="progress-bar"><span id="progress-fill"></span></div>
+            <div class="progress-row">
+              <p id="progress-text" aria-live="polite"></p>
+              <button type="button" class="btn btn-quiet btn-small" id="cancel-button">취소</button>
+            </div>
+          </div>
+
+          <p class="error" id="panel-error" role="alert" hidden></p>
+        </aside>
+
+        <section id="result" class="result" hidden aria-labelledby="result-title">
+          <h2 id="result-title">결과</h2>
+          <figure class="result-figure">
+            <img id="result-image" alt="만들어진 GIF 미리보기">
+          </figure>
+          <div class="result-foot">
+            <div>
+              <p class="result-meta" id="result-meta"></p>
+              <p class="size-note" id="size-note"></p>
+            </div>
+            <a class="btn btn-primary" id="download-link" download>
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <path d="M7 10l5 5 5-5"/>
+                <path d="M12 15V3"/>
+              </svg>
+              GIF 저장
+            </a>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <p>GIF 인코딩에 <a href="https://github.com/mattdesl/gifenc">gifenc</a>(MIT)를 써요.</p>
+    </footer>
+  </div>
+
+  <div class="drop-overlay" aria-hidden="true">놓으면 이 동영상으로 바꿔요</div>
+
+  <noscript><p class="noscript">이 도구는 JavaScript가 켜져 있어야 동작해요.</p></noscript>
+</body>
+</html>
